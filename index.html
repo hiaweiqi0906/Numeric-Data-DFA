@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
+  <title>DFA L2</title>
+  <style>
+    .btn {
+      width: 100%;
+      margin-bottom: 2rem !important;
+    }
+
+    .color-accepted-true {
+      color: black;
+    }
+
+    .color-accepted-false {
+      color: grey;
+    }
+
+    .text-display {
+      animation: fadeIn 0.1s;
+    }
+
+    @keyframes fadeIn {
+      0% {
+        opacity: 0;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+  </style>
+  <script src="dfa.js"></script>
+</head>
+
+<body>
+  <div class="container" style="padding-top: 3rem">
+    <div class='row'>
+      <div class="col-10" style="height: 50vh; ">
+        <textarea name="sampleText_input" id="sampleText_input"
+          style="width: 100%; outline: none; height: 100%; padding: 0"></textarea>
+        <div style="width: 100%; outline: none; height: 100%; display: none" id="sampleText_display">
+
+        </div>
+      </div>
+      <div class="col-2">
+        <button type="button" class="btn btn-primary m-auto" style="display: block" id="btn_detect"
+          onclick="handleClickDetect()">
+          Detect
+        </button>
+        <button type="button" class="btn btn-primary m-auto" style="display: block" id="btn_reenter"
+          onclick="handleClickReenter()">
+          Re-enter
+        </button>
+        <div style="padding-top: 4rem;">
+          <h5 style="margin-bottom: 2rem;">Sample Text: </h5>
+          <button type="button" class="btn btn-primary m-auto" style="display: block" id="btn_reenter"
+            onclick="handleClickSampleText(1)">
+            Sample Text 1
+          </button>
+          <button type="button" class="btn btn-primary m-auto" style="display: block" id="btn_reenter"
+            onclick="handleClickSampleText(2)">
+            Sample Text 2
+          </button>
+          <button type="button" class="btn btn-primary m-auto" style="display: block" id="btn_reenter"
+            onclick="handleClickSampleText(3)">
+            Sample Text 3
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+    integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>
+    // $("#btn_reenter").prop('disabled', true);
+
+    const handleClickDetect = () => {
+      let sampleTextInput = $("#sampleText_input").val()
+      let appendedParagraph = ""
+      let originalWord = ""
+      $("#sampleText_display").css("display", "block");
+      $("#sampleText_display").html("<p class='all-text-display'></p>");
+      sampleTextInput.split(". ").forEach((sentence, sentenceIndex) => {
+        sentence.split(" ").forEach((word, wordIndex, wordArr) => {
+          wordCopy = word
+          if (word.includes(',')) {
+            wordCopy = word.split(',')[0]
+          }
+          const regex = /[^a-zA-Z0-9\s.%-]/g;
+          // Replace non-alphabetic, non-numeric, non-period, and non-percentage characters with an empty string
+          wordCopy = wordCopy.replace(regex, '').toLowerCase();
+          // let finalResult = dfa(wordCopy)
+          let finalResult;
+          if (wordCopy.includes('-')) {
+            let allWords = wordCopy.split('-');
+            if(allWords[0] === ""){
+              allWords = allWords.splice(1,1)
+            }
+            finalResult = true
+            for (let w of allWords) {
+              if (!dfa(w)) {
+                finalResult = false
+                break;
+              }
+            }
+          } else {
+            finalResult = dfa(wordCopy)
+          }
+
+          if (wordIndex === wordArr.length - 1) {
+            $("p.all-text-display").delay(100).queue(function (next) {
+              $(this).append(`<span class="color-accepted-${finalResult} text-display">${word}. </span>`);
+              next();
+            });
+          } else {
+            $("p.all-text-display").delay(100).queue(function (next) {
+              $(this).append(`<span class="color-accepted-${finalResult} text-display">${word} </span>`);
+              next();
+            });
+          }
+        })
+      })
+
+
+
+      $("#sampleText_input").css("display", "none");
+      $("#btn_reenter").prop('disabled', false);
+      $("#btn_detect").prop('disabled', true);
+    };
+
+    const handleClickReenter = () => {
+      $("#sampleText_input").css("display", "block");
+      $("#sampleText_display").css("display", "none");
+      $("#btn_reenter").prop('disabled', true);
+      $("#btn_detect").prop('disabled', false);
+    };
+
+    const handleClickSampleText = (index) => {
+      switch (index) {
+        case 1:
+          $("#sampleText_input").val("Malaysia is a federal constitutional monarchy located in Southeast Asia. It consists of thirteen states and three federal territories and has a total landmass of 329,847 square kilometres (127,350 sq mi) separated by the South China Sea into two similarly sized regions, Peninsular Malaysia and East Malaysia (Malaysian Borneo). Peninsular Malaysia shares a land and maritime border with Thailand and maritime borders with Singapore, Vietnam, and Indonesia. East Malaysia shares land and maritime borders with Brunei and Indonesia and a maritime border with the Philippines. The capital city is Kuala Lumpur, while Putrajaya is the seat of the federal government. By 2015, with a population of over 30 million, Malaysia became 43rd most populous country in the world. The southernmost point of continental Eurasia, Tanjung Piai, is in Malaysia, located in the tropics. It is one of 17 megadiverse countries on earth, with large numbers of endemic species.")
+
+          break;
+        case 2:
+          $("#sampleText_input").val("Malaysia has its origins in the Malay kingdoms present in the area which, from the 18th century, became subject to the British Empire. The first British territories were known as the Straits Settlements, whose establishment was followed by the Malay kingdoms becoming British protectorates. The territories on Peninsular Malaysia were first unified as the Malayan Union in 1946. Malaya was restructured as the Federation of Malaya in 1948, and achieved independence on 31 August 1957. Malaya united with North Borneo, Sarawak, and Singapore on 16 September 1963, with is being added to give the new country the name Malaysia. Less than two years later in 1965, Singapore was expelled from the federation.")
+
+          break;
+        case 3:
+          $("#sampleText_input").val("Since its independence, Malaysia has had one of the best economic records in Asia, with its GDP growing at an average of 6.5% per annum for almost 50 years. The economy has traditionally been fuelled by its natural resources, but is expanding in the sectors of science, tourism, commerce and medical tourism. Today, Malaysia has a newly industrialised market economy, ranked third largest in Southeast Asia and 29th largest in the world. It is a founding member of the Association of Southeast Asian Nations, the East Asia Summit and the Organisation of Islamic Cooperation, and a member of Asia-Pacific Economic Cooperation, the Commonwealth of Nations, and the Non-Aligned Movement.")
+
+          break;
+
+        default:
+          break;
+      }
+    }
+  </script>
+</body>
+
+</html>
